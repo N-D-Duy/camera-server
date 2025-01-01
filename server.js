@@ -19,7 +19,8 @@ app.use((req, res, next) => {
     next();
 });
 
-const wsServer = new WebSocket.Server({ server });
+const wsServer = new WebSocket.Server({port: WS_PORT}, ()=> console.log(`WS Server is listening at ${WS_PORT}`));
+
 
 let connectedClients = [];
 wsServer.on('connection', (ws, req) => {
