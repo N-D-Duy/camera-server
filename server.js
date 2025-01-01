@@ -14,30 +14,18 @@ app.use((req, res, next) => {
 const wsServer = new WebSocket.Server({port: WS_PORT}, ()=> console.log(`WS Server is listening at ${WS_PORT}`));
 
 let connectedClients = [];
-
-wsServer.on('connection', (ws, req) => {
-    const clientIp = req.socket.remoteAddress;
-    console.log(`Client connected from ${clientIp}`);
+wsServer.on('connection', (ws, req)=>{
+    console.log('Connected');
     connectedClients.push(ws);
 
-    ws.on('message', (data) => {
-        console.log(`Received ${data.length} bytes from ${clientIp}`);
-        connectedClients.forEach((client, i) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(data);
-            } else {
-                connectedClients.splice(i, 1);
+    ws.on('message', data => {
+        connectedClients.forEach((ws,i)=>{
+            if(ws.readyState === ws.OPEN){
+                ws.send(data);
+            }else{
+                connectedClients.splice(i ,1);
             }
-        });
-    });
-
-    ws.on('error', (error) => {
-        console.error(`Client error: ${error.message}`);
-    });
-
-    ws.on('close', () => {
-        console.log(`Client ${clientIp} disconnected`);
-        connectedClients = connectedClients.filter(client => client !== ws);
+        })
     });
 });
 
