@@ -3,10 +3,10 @@
         <title>Client</title>
     </head>
     <body>
-        <img src="">
+        <img src="" style="display: block; margin-left: auto; margin-right: auto; width: 100%; height: auto;">
         <script>
             const img = document.querySelector('img');
-            const WS_URL = 'ws://188.166.177.199:8888';
+            const WS_URL = 'wss://cam.duynguyendev.xyz/ws/';
             const ws = new WebSocket(WS_URL);
             let urlObject;
             ws.onopen = () => console.log(`Connected to ${WS_URL}`);

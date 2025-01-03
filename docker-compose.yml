@@ -1,0 +1,8 @@
+services:
+  server:
+    build: .
+    image: duynguyen03/camera-server:v1
+    container_name: camera-server
+    ports:
+      - "8000:8000"
+      - "8888:8888"

@@ -1,0 +1,2 @@
+### Camera server for esp32 cam
+This is a simple camera server for esp32 cam. It uses the esp32 cam's camera web server, receives the image and sends it to the client. The client can be a web browser client 
