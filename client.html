@@ -1,23 +1,69 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>Client</title>
-    </head>
-    <body>
-        <img src="" style="display: block; margin-left: auto; margin-right: auto; width: 100%; height: auto;">
-        <script>
-            const img = document.querySelector('img');
-            const WS_URL = 'wss://cam.duynguyendev.xyz/ws/';
-            const ws = new WebSocket(WS_URL);
-            let urlObject;
-            ws.onopen = () => console.log(`Connected to ${WS_URL}`);
-            ws.onmessage = message => {
-                const arrayBuffer = message.data;
-                if(urlObject){
-                    URL.revokeObjectURL(urlObject);
-                }
-                urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
-                img.src = urlObject;
-            }
-        </script>
-    </body>
+<head>
+  <title>Live Camera</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .live-stream {
+      width: 100%;
+      text-align: center;
+    }
+    .live-stream img {
+      max-width: 100%;
+      height: auto;
+    }
+    .nav-links {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .nav-links a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #0066cc;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-links">
+      <a href="/client">Live View</a>
+      <a href="/recordings-viewer">Recordings</a>
+    </div>
+    
+    <h1>Live Camera View</h1>
+    
+    <div class="live-stream">
+      <img src="" id="streamImg">
+    </div>
+  </div>
+  
+  <script>
+    const img = document.getElementById('streamImg');
+    const WS_URL = 'wss://cam.duynguyendev.xyz/ws/';
+    const ws = new WebSocket(WS_URL);
+    let urlObject;
+    
+    ws.onopen = () => console.log(`Connected to ${WS_URL}`);
+    ws.onmessage = message => {
+      const arrayBuffer = message.data;
+      if(urlObject) {
+        URL.revokeObjectURL(urlObject);
+      }
+      urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+      img.src = urlObject;
+    }
+  </script>
+</body>
 </html>

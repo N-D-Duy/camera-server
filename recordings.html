@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Camera Recordings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .recordings-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .recording-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .recording-video {
+      width: 100%;
+      height: auto;
+    }
+    .recording-details {
+      padding: 10px;
+    }
+    .nav-links {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .nav-links a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #0066cc;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-links">
+      <a href="/client">Live View</a>
+      <a href="/recordings-viewer">Recordings</a>
+    </div>
+    
+    <h1>Camera Recordings</h1>
+
+    <div class="filters">
+      <label for="dateFilter">Chọn ngày:</label>
+      <input type="date" id="dateFilter" onchange="loadRecordings()">
+    </div>
+
+    <div class="recordings-list" id="recordingsList">
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('dateFilter').valueAsDate = new Date();
+      loadRecordings();
+    });
+
+    async function loadRecordings() {
+      const dateFilter = document.getElementById('dateFilter').value;
+      const recordingsList = document.getElementById('recordingsList');
+      
+      try {
+        const response = await fetch(`/api/recordings?date=${dateFilter}`);
+        const recordings = await response.json();
+        
+        recordingsList.innerHTML = '';
+        
+        if (recordings.length === 0) {
+          recordingsList.innerHTML = '<p>Không có bản ghi nào cho ngày này.</p>';
+          return;
+        }
+        
+        recordings.forEach(recording => {
+          const startTime = new Date(recording.start_time);
+          const endTime = new Date(recording.end_time);
+          
+          const item = document.createElement('div');
+          item.className = 'recording-item';
+          
+          item.innerHTML = `
+            <video class="recording-video" controls>
+              <source src="/recordings/${recording.filename}" type="video/mp4">
+              Trình duyệt của bạn không hỗ trợ video.
+            </video>
+            <div class="recording-details">
+              <p><strong>Thời gian:</strong> ${formatTime(startTime)} - ${formatTime(endTime)}</p>
+              <p><strong>Độ dài:</strong> ${recording.duration}s</p>
+              <p><strong>Kích thước:</strong> ${formatFileSize(recording.filesize)}</p>
+            </div>
+          `;
+          
+          recordingsList.appendChild(item);
+        });
+      } catch (error) {
+        console.error('Lỗi khi tải recordings:', error);
+        recordingsList.innerHTML = '<p>Đã xảy ra lỗi khi tải dữ liệu.</p>';
+      }
+    }
+    
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+      return (bytes / 1048576).toFixed(2) + ' MB';
+    }
+  </script>
+</body>
+</html>

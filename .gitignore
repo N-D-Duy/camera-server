@@ -73,3 +73,5 @@ firebase.json
 .firebaserc
 .firebase/
 hosting/
+database/
+recordings/
