@@ -21,5 +21,8 @@ ls -la /app/database
 echo "Testing ffmpeg..."
 ffmpeg -version | head -n 1
 
-echo "Starting camera server..."
+echo "Node version:"
+node --version
+
+echo "Starting camera server with debugging..."
 npm start

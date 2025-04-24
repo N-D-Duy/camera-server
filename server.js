@@ -6,12 +6,15 @@ const sqlite3 = require('sqlite3').verbose();
 const moment = require('moment');
 const { spawn } = require('child_process');
 const { promisify } = require('util');
+const client = require('prom-client');
 
 const app = express();
 const WS_PORT = 8888;
 const HTTP_PORT = 8000;
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
 
-
+app.use(express.static(path.join(__dirname)));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   next();
@@ -20,6 +23,51 @@ app.use((req, res, next) => {
 
 app.use('/recordings', express.static(path.join(__dirname, 'recordings')));
 app.use(express.json());
+
+const httpRequestCounter = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status'],
+});
+register.registerMetric(httpRequestCounter);
+
+const httpRequestDurationSeconds = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10], // Buckets cho latency (seconds)
+});
+register.registerMetric(httpRequestDurationSeconds);
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    try {
+      const duration = (Date.now() - start) / 1000;
+      const labels = {
+        method: req.method,
+        route: req.route?.path || req.path || 'unknown',
+        status: res.statusCode,
+      };
+      httpRequestCounter.inc(labels);
+      httpRequestDurationSeconds.observe(labels, duration);
+    } catch (error) {
+      console.error('Error recording metrics:', error);
+    }
+  });
+  next();
+});
+
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).send('Internal Server Error');
+});
+
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 
 const RECORDINGS_DIR = path.join(__dirname, 'recordings');
@@ -119,16 +167,12 @@ wsServer.on('connection', (ws, req) => {
   
   ws.on('message', (data) => {
     try {
-      
       wsServer.clients.forEach((client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
           client.send(data);
         }
       });
-      
       const timestamp = Date.now();
-      
-      
       if (lastFrameTimestamp > 0) {
         const frameInterval = timestamp - lastFrameTimestamp;
         if (frameInterval > 500) { 
@@ -137,12 +181,10 @@ wsServer.on('connection', (ws, req) => {
       }
       lastFrameTimestamp = timestamp;
       
-      
       if (frameQueue.length >= CONFIG.MAX_BUFFER_SIZE) {
         console.log(`Buffer đầy (${frameQueue.length} frames), loại bỏ frame cũ nhất`);
         frameQueue.shift(); 
       }
-      
       
       frameQueue.push({
         data: data, 
@@ -150,16 +192,13 @@ wsServer.on('connection', (ws, req) => {
         index: nextFrameIndex++
       });
       
-      
       if (!recordingActive) {
         recordingActive = true;
         console.log('Bắt đầu ghi lại');
       }
       
-      
       frameRateStats.count++;
       updateFrameRateStats();
-      
     } catch (err) {
       console.error('Lỗi khi xử lý frame:', err);
     }

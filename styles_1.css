@@ -1,0 +1,46 @@
+/* styles.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+h1 {
+  text-align: center;
+}
+.filters {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+.recordings-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.recording-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.recording-video {
+  width: 100%;
+  height: auto;
+}
+.recording-details {
+  padding: 10px;
+}
+.nav-links {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.nav-links a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #0066cc;
+  font-weight: bold;
+}
+
